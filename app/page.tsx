@@ -90,8 +90,7 @@ export default function FlightSearch() {
         )}`,
         {
           headers: {
-            "X-RapidAPI-Key":
-              "c6cf3e6945msh82a77a5796d0be6p1695ccjsna37529b3a60f",
+            "X-RapidAPI-Key": "YOUR_API",
             "X-RapidAPI-Host": "sky-scrapper.p.rapidapi.com",
           },
         }
@@ -138,8 +137,7 @@ export default function FlightSearch() {
           `&sortBy=best&currency=USD&market=en-US&countryCode=US`,
         {
           headers: {
-            "X-RapidAPI-Key":
-              "c6cf3e6945msh82a77a5796d0be6p1695ccjsna37529b3a60f",
+            "X-RapidAPI-Key": "YOUR_API",
             "X-RapidAPI-Host": "sky-scrapper.p.rapidapi.com",
           },
         }
