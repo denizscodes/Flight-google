@@ -123,8 +123,12 @@ export const FlightCard = ({ flight, onSelect, isReturn }: FlightCardProps) => {
               </Typography>
             )}
           </Grid>
-          <Box>
-            <Typography fontWeight="bold" fontSize="18px" color="secondary">
+          <Box sx={{ padding: "10px" }}>
+            <Typography
+              fontWeight="bold"
+              fontSize="18px"
+              style={{ color: "black", padding: "5px" }}
+            >
               {flight.price}
             </Typography>
             <div style={{ marginTop: "8px" }}>
@@ -137,6 +141,9 @@ export const FlightCard = ({ flight, onSelect, isReturn }: FlightCardProps) => {
                   fontWeight: "bold",
                   textTransform: "none",
                   zIndex: "20",
+                  border: "solid",
+                  borderColor: "#1b73e8",
+                  color: "#1b73e8",
                 }}
               >
                 {isReturn ? "Select Return Flight" : "Select Flight"}
