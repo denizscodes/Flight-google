@@ -45,7 +45,7 @@ const destinations = [
 
 const FlightFinder: React.FC = () => {
   const { isLoaded } = useJsApiLoader({
-    googleMapsApiKey: "AIzaSyCHDi8ImHv1t9D69rX4rAn9sIy4VdEwK3Y", // Google Maps API anahtarınızı buraya ekleyin
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY || "", // Use an empty string or a fallback API key
     libraries: ["places"], // Yerler kütüphanesi gerekiyorsa
   });
 
