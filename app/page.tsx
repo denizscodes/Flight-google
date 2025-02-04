@@ -29,6 +29,7 @@ interface Flight {
   aircraft: string;
   seatPitch: string;
   emission: string;
+  isReturn?: boolean; // Add a flag to indicate if it's a return flight
 }
 
 interface Airport {
@@ -54,6 +55,8 @@ interface Airport {
 
 export default function FlightSearch() {
   // State declarations
+  const [departureFlights, setDepartureFlights] = useState<Flight[]>([]);
+  const [returnFlights, setReturnFlights] = useState<Flight[]>([]);
   const [flights, setFlights] = useState<Flight[]>([]);
   const [loading, setLoading] = useState(false);
   const [airportSuggestions, setAirportSuggestions] = useState<Airport[]>([]);
@@ -125,13 +128,14 @@ export default function FlightSearch() {
         ? format(returnDate, "yyyy-MM-dd")
         : "";
 
-      const response = await fetch(
+      // Fetch Departure Flights
+      const departureResponse = await fetch(
         `https://sky-scrapper.p.rapidapi.com/api/v1/flights/searchFlights?` +
           `originSkyId=${origin.skyId}&destinationSkyId=${destination.skyId}` +
           `&originEntityId=${origin.entityId}&destinationEntityId=${destination.entityId}` +
-          `&date=${formattedDepartureDate}&returnDate=${formattedReturnDate}&` +
-          `cabinClass=${cabinClass}&adults=${adults}&children=${children}&infants=${infants}&` +
-          `sortBy=best&currency=USD&market=en-US&countryCode=US`,
+          `&date=${formattedDepartureDate}&cabinClass=${cabinClass}` +
+          `&adults=${adults}&children=${children}&infants=${infants}` +
+          `&sortBy=best&currency=USD&market=en-US&countryCode=US`,
         {
           headers: {
             "X-RapidAPI-Key":
@@ -141,13 +145,16 @@ export default function FlightSearch() {
         }
       );
 
-      if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+      if (!departureResponse.ok) {
+        throw new Error(`HTTP error! Status: ${departureResponse.status}`);
       }
 
-      const result = await response.json();
-      if (result.status && result.data?.itineraries?.length > 0) {
-        const formattedFlights = result.data.itineraries.map(
+      const departureResult = await departureResponse.json();
+      if (
+        departureResult.status &&
+        departureResult.data?.itineraries?.length > 0
+      ) {
+        const formattedDepartureFlights = departureResult.data.itineraries.map(
           (itinerary: any) => {
             const flightLeg = itinerary.legs[0];
             return {
@@ -161,14 +168,61 @@ export default function FlightSearch() {
             };
           }
         );
-        setFlights(formattedFlights);
+        setDepartureFlights(formattedDepartureFlights);
       } else {
-        setFlights([]);
-        setError("No flights found for this route.");
+        setDepartureFlights([]);
+        setError("No departure flights found for this route.");
+      }
+
+      // Fetch Return Flights if it's a round trip
+      if (!isOneWay && returnDate) {
+        const returnResponse = await fetch(
+          `https://sky-scrapper.p.rapidapi.com/api/v1/flights/searchFlights?` +
+            `originSkyId=${destination.skyId}&destinationSkyId=${origin.skyId}` +
+            `&originEntityId=${destination.entityId}&destinationEntityId=${origin.entityId}` +
+            `&date=${formattedReturnDate}&cabinClass=${cabinClass}` +
+            `&adults=${adults}&children=${children}&infants=${infants}` +
+            `&sortBy=best&currency=USD&market=en-US&countryCode=US`,
+          {
+            headers: {
+              "X-RapidAPI-Key":
+                "c6cf3e6945msh82a77a5796d0be6p1695ccjsna37529b3a60f",
+              "X-RapidAPI-Host": "sky-scrapper.p.rapidapi.com",
+            },
+          }
+        );
+
+        if (!returnResponse.ok) {
+          throw new Error(`HTTP error! Status: ${returnResponse.status}`);
+        }
+
+        const returnResult = await returnResponse.json();
+        if (returnResult.status && returnResult.data?.itineraries?.length > 0) {
+          const formattedReturnFlights = returnResult.data.itineraries.map(
+            (itinerary: any) => {
+              const flightLeg = itinerary.legs[0];
+              return {
+                airline: flightLeg.segments[0].marketingCarrier.name,
+                price: itinerary.price.formatted,
+                departureTime: flightLeg.departure,
+                arrivalTime: flightLeg.arrival,
+                origin: flightLeg.origin.city,
+                destination: flightLeg.destination.city,
+                logo: flightLeg.carriers.marketing[0].logoUrl,
+                isReturn: true, // Mark this flight as a return flight
+              };
+            }
+          );
+          setReturnFlights(formattedReturnFlights); // Set return flights
+        } else {
+          setReturnFlights([]);
+          setError("No return flights found for this route.");
+        }
       }
     } catch (error) {
       setError("Failed to search flights. Please try again.");
-      setFlights([]);
+      setDepartureFlights([]);
+      setReturnFlights([]);
     } finally {
       setLoading(false);
     }
@@ -256,7 +310,8 @@ export default function FlightSearch() {
         )}
 
         <FlightResults
-          flights={flights}
+          departureFlights={departureFlights}
+          returnFlights={returnFlights}
           loading={loading}
           error={error}
           showDeparture={showDeparture}

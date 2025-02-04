@@ -14,10 +14,13 @@ interface Flight {
   aircraft: string;
   seatPitch: string;
   emission: string;
+  isReturn?: boolean;
+  // Add a flag to indicate if it's a return flight
 }
-
 interface FlightResultsProps {
-  flights: Flight[];
+  departureFlights: Flight[];
+  returnFlights: Flight[];
+  flights?: Flight[];
   loading: boolean;
   error: string | null;
   showDeparture: boolean;
@@ -27,6 +30,8 @@ interface FlightResultsProps {
 }
 
 export const FlightResults = ({
+  departureFlights,
+  returnFlights,
   flights,
   loading,
   error,
@@ -42,15 +47,11 @@ export const FlightResults = ({
     <Box>
       {showDeparture && (
         <Box>
-          <Typography variant="h5" gutterBottom>
-            Departure Flights
-          </Typography>
-          {flights.map((flight, index) => (
+          {departureFlights.map((flight, index) => (
             <FlightCard
               key={index}
               flight={flight}
               onSelect={onSelectDeparture}
-              isReturn={false} // Ensure it's marked as a departure flight
             />
           ))}
         </Box>
@@ -61,12 +62,12 @@ export const FlightResults = ({
           <Typography variant="h5" gutterBottom>
             Return Flights
           </Typography>
-          {flights.map((flight, index) => (
+          {returnFlights.map((flight, index) => (
             <FlightCard
               key={index}
               flight={flight}
               onSelect={onSelectReturn}
-              isReturn={true} // Mark as a return flight
+              isReturn
             />
           ))}
         </Box>
